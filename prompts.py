@@ -6,6 +6,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DEFAULTS = {
+    "career-rag-judge-context-relevance": (
+        "You are an impartial evaluation judge.\n"
+        "Score how relevant the retrieved context is to answering the question.\n\n"
+        "Question: {question}\n\nRetrieved Context:\n{context}\n\n"
+        "Score 0.0–1.0: 1.0=highly relevant, 0.5=partial, 0.0=irrelevant.\n"
+        "Respond with ONLY a single decimal number. No explanation."
+    ),
+    "career-rag-judge-faithfulness": (
+        "You are an impartial evaluation judge.\n"
+        "Score whether the answer is fully grounded in the provided context (no hallucination).\n\n"
+        "Retrieved Context:\n{context}\n\nAnswer: {answer}\n\n"
+        "Score 0.0–1.0: 1.0=fully grounded, 0.5=partially, 0.0=contradicts context.\n"
+        "Respond with ONLY a single decimal number. No explanation."
+    ),
+    "career-rag-judge-answer-relevance": (
+        "You are an impartial evaluation judge.\n"
+        "Score how well the answer addresses the user's question.\n\n"
+        "Question: {question}\n\nAnswer: {answer}\n\n"
+        "Score 0.0–1.0: 1.0=directly addresses, 0.5=partial, 0.0=does not address.\n"
+        "Respond with ONLY a single decimal number. No explanation."
+    ),
     "career-rag-query": (
         "You are a helpful assistant. Answer the user's question using only the context below.\n"
         "At the end of your answer, list the source documents used.\n\n"
@@ -49,3 +70,21 @@ def get_query_prompt(context: str, question: str) -> str:
 def get_intent_prompt(text: str) -> str:
     template = _pull_template("career-rag-intent") or DEFAULTS["career-rag-intent"]
     return template.format(text=text)
+
+
+def get_judge_context_relevance_prompt(question: str, context: str) -> str:
+    template = _pull_template("career-rag-judge-context-relevance") \
+        or DEFAULTS["career-rag-judge-context-relevance"]
+    return template.format(question=question, context=context)
+
+
+def get_judge_faithfulness_prompt(context: str, answer: str) -> str:
+    template = _pull_template("career-rag-judge-faithfulness") \
+        or DEFAULTS["career-rag-judge-faithfulness"]
+    return template.format(context=context, answer=answer)
+
+
+def get_judge_answer_relevance_prompt(question: str, answer: str) -> str:
+    template = _pull_template("career-rag-judge-answer-relevance") \
+        or DEFAULTS["career-rag-judge-answer-relevance"]
+    return template.format(question=question, answer=answer)

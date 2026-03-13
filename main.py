@@ -1,6 +1,8 @@
 """Career/Portfolio RAG: upload → markdown → chunk → embed_store | query → retrieve → answer."""
 
 import os
+import re
+import threading
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -20,7 +22,12 @@ from langchain_core.runnables import RunnableConfig
 from langsmith import Client as LangSmithClient
 from langsmith import get_current_run_tree
 
-from prompts import get_query_prompt
+from prompts import (
+    get_query_prompt,
+    get_judge_context_relevance_prompt,
+    get_judge_faithfulness_prompt,
+    get_judge_answer_relevance_prompt,
+)
 
 load_dotenv()
 
@@ -38,7 +45,48 @@ def _log_metrics(run_id: str, metrics: dict[str, float]) -> None:
 
 os.environ["LANGSMITH_PROJECT"] = "website-claude-rag"
 
+
+def _parse_score(text: str) -> float | None:
+    match = re.search(r"\b([01](?:\.\d+)?|\d?\.\d+)\b", text.strip())
+    if match:
+        return max(0.0, min(1.0, float(match.group(1))))
+    return None
+
+
+def _run_judge(run_id: str, question: str, context: str, answer: str) -> None:
+    def _judge():
+        try:
+            evals = [
+                (get_judge_context_relevance_prompt(question=question, context=context),
+                 "judge/context_relevance"),
+                (get_judge_faithfulness_prompt(context=context, answer=answer),
+                 "judge/faithfulness"),
+                (get_judge_answer_relevance_prompt(question=question, answer=answer),
+                 "judge/answer_relevance"),
+            ]
+            metrics: dict[str, float] = {}
+            for prompt, key in evals:
+                try:
+                    resp = completion(
+                        model=JUDGE_MODEL,
+                        messages=[{"role": "user", "content": prompt}],
+                        max_tokens=10,
+                        temperature=0.0,
+                    )
+                    raw = resp.choices[0].message.content or ""
+                    score = _parse_score(raw)
+                    if score is not None:
+                        metrics[key] = score
+                except Exception as e:
+                    print(f"[judge] failed for '{key}': {e}")
+            if metrics:
+                _log_metrics(run_id, metrics)
+        except Exception:
+            pass
+    threading.Thread(target=_judge, daemon=True).start()
+
 LLM_MODEL = os.getenv("LLM_MODEL", "deepseek/deepseek-chat")
+JUDGE_MODEL = os.getenv("JUDGE_MODEL", "openai/gpt-4o-mini")
 QDRANT_URL = os.getenv("QDRANT_URL", "")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
@@ -247,6 +295,12 @@ def query_node(state: QueryState, config: RunnableConfig) -> dict:
             "generation/source_count": float(len(sources)),
             "generation/has_answer": 1.0,
         })
+        _run_judge(
+            run_id=str(run_id),
+            question=question,
+            context=context,
+            answer=answer,
+        )
 
     return {"messages": [{"role": "assistant", "content": full_answer}]}
 
