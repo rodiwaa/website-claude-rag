@@ -22,12 +22,7 @@ from langchain_core.runnables import RunnableConfig
 from langsmith import Client as LangSmithClient
 from langsmith import get_current_run_tree
 
-from prompts import (
-    get_query_prompt,
-    get_judge_context_relevance_prompt,
-    get_judge_faithfulness_prompt,
-    get_judge_answer_relevance_prompt,
-)
+from prompts import get_query_prompt, DEFAULTS
 
 load_dotenv()
 
@@ -57,11 +52,11 @@ def _run_judge(run_id: str, question: str, context: str, answer: str) -> None:
     def _judge():
         try:
             evals = [
-                (get_judge_context_relevance_prompt(question=question, context=context),
+                (DEFAULTS["career-rag-judge-context-relevance"].format(question=question, context=context),
                  "judge/context_relevance"),
-                (get_judge_faithfulness_prompt(context=context, answer=answer),
+                (DEFAULTS["career-rag-judge-faithfulness"].format(context=context, answer=answer),
                  "judge/faithfulness"),
-                (get_judge_answer_relevance_prompt(question=question, answer=answer),
+                (DEFAULTS["career-rag-judge-answer-relevance"].format(question=question, answer=answer),
                  "judge/answer_relevance"),
             ]
             metrics: dict[str, float] = {}
