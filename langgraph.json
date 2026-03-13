@@ -1,0 +1,13 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "upload_agent": "./main.py:app",
+    "query_agent": "./main.py:query_app",
+    "list_agent": "./main.py:list_app"
+  },
+  "env": ".env",
+  "python_version": "3.11",
+  "dockerfile_lines": [
+    "RUN pip install docling litellm openai qdrant-client python-dotenv pydantic langgraph"
+  ]
+}

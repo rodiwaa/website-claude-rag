@@ -1,0 +1,16 @@
+[project]
+name = "website-claude-rag"
+version = "0.1.0"
+description = "Career/portfolio PDF RAG with LangGraph, Qdrant Cloud, and Chainlit"
+requires-python = ">=3.11"
+dependencies = [
+    "chainlit>=2.9.6",
+    "docling",
+    "langgraph>=1.0.9",
+    "litellm>=1.81.13",
+    "openai>=1.0.0",
+    "pydantic>=2.12.5",
+    "python-dotenv>=1.2.1",
+    "qdrant-client>=1.9.0",
+    "langsmith>=0.1.0",
+]
