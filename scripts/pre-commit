@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "${SKIP_EVALS:-0}" = "1" ]; then
+  echo "[pre-commit] Skipping evals (SKIP_EVALS=1)"
+  exit 0
+fi
+
+echo "[pre-commit] Running evals..."
+make eval

@@ -171,13 +171,34 @@ def eval_answer_relevance(inputs: dict, outputs: dict, reference_outputs: dict) 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--fresh", action="store_true", help="Delete existing dataset, regenerate QA pairs, then evaluate")
+    args = parser.parse_args()
+
     ls_client = LangSmithClient()
 
-    print("[evals] generating QA pairs from Qdrant chunks...")
-    pairs = generate_qa_pairs(n=N_PAIRS)
-    print(f"[evals] got {len(pairs)} valid pairs")
-
-    create_or_update_dataset(ls_client, pairs)
+    if args.fresh:
+        existing = list(ls_client.list_datasets(dataset_name=DATASET_NAME))
+        if existing:
+            ls_client.delete_dataset(dataset_id=existing[0].id)
+            print(f"[dataset] deleted '{DATASET_NAME}'")
+        pairs = generate_qa_pairs(n=N_PAIRS)
+        dataset = ls_client.create_dataset(dataset_name=DATASET_NAME, description="Golden QA pairs.")
+        ls_client.create_examples(
+            inputs=[{"question": p["question"]} for p in pairs],
+            outputs=[{"answer": p["expected_answer"]} for p in pairs],
+            dataset_id=dataset.id,
+        )
+        print(f"[dataset] seeded {len(pairs)} fresh pairs")
+    else:
+        existing = list(ls_client.list_datasets(dataset_name=DATASET_NAME))
+        if not existing:
+            raise RuntimeError(
+                f"Dataset '{DATASET_NAME}' not found. Run 'make eval-fresh' first to generate it."
+            )
+        print(f"[dataset] reusing '{DATASET_NAME}'")
 
     print("[evals] running langsmith.evaluate()...")
     langsmith.evaluate(
