@@ -1,5 +1,5 @@
 # Website RAG Assistant
-I setup ingestion and query pipeline RAG chatbbot, so users to get information on my website I setup a RAG assistent to answer queries from select sources (uploaded resume, portfolio website, blogs, linkedin).
+I setup ingestion and query pipeline RAG chatbbot for website, can easily get information on my website to answer queries, sourced from select sources (uploaded resume, portfolio website, blogs, linkedin).
 
 ## Ingestion-Query Pipeline Flow
 ![alt text](assets/images/website-rag-ingest-query-pp.png)
