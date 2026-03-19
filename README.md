@@ -37,6 +37,10 @@ Query, Citations
   - LLM as a judge metrics
 - Evaluation, with golden datasets
 - Central prompt management, versioning
+- Evals on every commit w pre commit hooks, and skippable flags
+
+## Evals on every commit w pre commit hooks, and skippable flags
+![alt text](assets/images/evals%20on%20commit%20w%20pre%20commit%20hooks.png)
 
 ## Traces Latency Overall
 ![alt text](assets/images/tracing%20latency%20overall%20dashboard.png)
