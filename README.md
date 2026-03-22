@@ -26,7 +26,12 @@ Ask questions via interface
 - 
 
 ## Demo
-Query, Citations
+
+### Website Integration
+![alt text](assets/images/site-chatbot.png)
+
+
+### Query, Citations
 ![alt text](assets/images/query-citations-1.png)
 
 
